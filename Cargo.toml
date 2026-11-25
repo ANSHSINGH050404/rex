@@ -4,5 +4,4 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-gpui = "*"
-gpui_platform = { version = "*", features = ["wayland", "x11"] }
+gpui = "0.2"
