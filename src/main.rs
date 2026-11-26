@@ -40,7 +40,11 @@ fn header(cx: &mut Context<Rex>, tab_count: usize) -> impl IntoElement {
         .px(px(16.))
         .py(px(10.))
         .bg(rgb(0x1b1b1b))
-        .child(format!("Rex Terminal ({} tabs)", tab_count))
+        .child(format!(
+            "Rex Terminal ({} {})",
+            tab_count,
+            if tab_count == 1 { "tab" } else { "tabs" }
+        ))
         .child(
             div()
                 .flex()
@@ -56,7 +60,9 @@ fn header(cx: &mut Context<Rex>, tab_count: usize) -> impl IntoElement {
                         .cursor_pointer()
                         .child("-")
                         .on_click(cx.listener(|this, _, _, cx| {
-                            this.tab_count = this.tab_count.saturating_sub(1);
+                            if this.tab_count > 1 {
+                                this.tab_count -= 1;
+                            }
                             cx.notify();
                         })),
                 )
