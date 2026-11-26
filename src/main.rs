@@ -1,17 +1,17 @@
 use gpui::{
-    App, Application, Bounds, Context, Render, Window, WindowBounds, WindowOptions, div, px, rgb,
-    size, prelude::*,
+    App, Application, Bounds, Context, Render, Window, WindowBounds, WindowOptions, div,
+    prelude::*, px, rgb, size,
 };
 
+
 struct Rex {
-    tab_count: usize,
+    tabs:Vec<Entity<Tab>>,
 }
 
-impl Rex {
-    fn new(_cx: &mut Context<Self>) -> Self {
-        Self { tab_count: 1 }
-    }
-}
+
+struct tab {
+    title:String,
+} 
 
 impl Render for Rex {
     fn render(
@@ -25,13 +25,44 @@ impl Render for Rex {
             .size_full()
             .bg(rgb(0x111111))
             .text_color(rgb(0xffffff))
-            .child(header(cx, self.tab_count))
+            .child(
+                div()
+                    .flex()
+                    .flex_row()
+                    .items_center()
+                    .justify_between()
+                    .px(px(16.))
+                    .py(px(10.))
+                    .bg(rgb(0x1b1b1b))
+                    .child("Rex Terminal")
+                    .child(
+                        div()
+                            .flex()
+                            .flex_row()
+                            .gap(px(12.))
+                            .items_center()
+                            .child(format!("Tabs: {}", self.tabs))
+                            .child(
+                                div()
+                                    .px(px(10.))
+                                    .py(px(5.))
+                                    .bg(rgb(0x333333))
+                                    .child("+ New Tab")
+                                    .on_click(cx.listener(
+                                        |this, _event, _window, cx| {
+                                            this.tabs += 1;
+                                            cx.notify();
+                                        },
+                                    )),
+                            ),
+                    ),
+            )
             .child(terminal_content())
-            .child(status_bar(self.tab_count))
+            .child(status_bar())
     }
 }
 
-fn header(cx: &mut Context<Rex>, tab_count: usize) -> impl IntoElement {
+fn header() -> impl IntoElement {
     div()
         .flex()
         .flex_row()
@@ -40,47 +71,8 @@ fn header(cx: &mut Context<Rex>, tab_count: usize) -> impl IntoElement {
         .px(px(16.))
         .py(px(10.))
         .bg(rgb(0x1b1b1b))
-        .child(format!(
-            "Rex Terminal ({} {})",
-            tab_count,
-            if tab_count == 1 { "tab" } else { "tabs" }
-        ))
-        .child(
-            div()
-                .flex()
-                .flex_row()
-                .gap(px(4.))
-                .child(
-                    div()
-                        .id("dec-tab")
-                        .px(px(8.))
-                        .py(px(4.))
-                        .rounded(px(4.))
-                        .bg(rgb(0x2a2a2a))
-                        .cursor_pointer()
-                        .child("-")
-                        .on_click(cx.listener(|this, _, _, cx| {
-                            if this.tab_count > 1 {
-                                this.tab_count -= 1;
-                            }
-                            cx.notify();
-                        })),
-                )
-                .child(
-                    div()
-                        .id("new-tab")
-                        .px(px(8.))
-                        .py(px(4.))
-                        .rounded(px(4.))
-                        .bg(rgb(0x2a2a2a))
-                        .cursor_pointer()
-                        .child("+ New Tab")
-                        .on_click(cx.listener(|this, _, _, cx| {
-                            this.tab_count += 1;
-                            cx.notify();
-                        })),
-                ),
-        )
+        .child("Rex Terminal")
+        .child("+ New Tab")
 }
 
 fn terminal_content() -> impl IntoElement {
@@ -89,12 +81,12 @@ fn terminal_content() -> impl IntoElement {
         .flex()
         .flex_col()
         .p(px(16.))
-        .bg(rgb(0x111111))
-        .child(div().text_color(rgb(0x808080)).child("ansh@omarchy ~"))
-        .child("$")
+        .bg(rgb(0xFF0000))
+        .child(div().text_color(rgb(0xa6e3a1)).child("ansh@omarchy ~"))
+        .child(div().text_color(rgb(0xa6e3a1)).child("$"))
 }
 
-fn status_bar(tab_count: usize) -> impl IntoElement {
+fn status_bar() -> impl IntoElement {
     div()
         .flex()
         .flex_row()
@@ -102,7 +94,7 @@ fn status_bar(tab_count: usize) -> impl IntoElement {
         .px(px(12.))
         .py(px(6.))
         .bg(rgb(0x1b1b1b))
-        .child(format!("Tabs: {}", tab_count))
+        .child("Shell: zsh")
         .child("UTF-8")
 }
 
@@ -114,7 +106,7 @@ fn main() {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 ..Default::default()
             },
-            |_, cx| cx.new(Rex::new),
+            |_window, cx| cx.new(|_cx| Rex { tabs: 1 }),
         )
         .unwrap();
 
